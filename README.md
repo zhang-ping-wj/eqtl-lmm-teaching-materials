@@ -5,7 +5,7 @@ This note is based on the files in `COI_summer.teaching/`:
 - `Simulated_test_data_geneA_eQTL.csv`
 - `Simulated test dataset_geneA_eQTL.R`
 
-The workshop document describes a practical on eQTLs, genotype coding, linear mixed-effects models, and genotype-by-time analysis. The CSV and R script are simulated teaching data, not a genome-wide eQTL scan.
+The workshop document describes a practical on eQTLs, genotype coding, linear mixed-effects models, and genotype-by-time analysis. The CSV and R script are simulated teaching data, not a genome-wide eQTL mapping.
 
 ## Data structure summary
 
