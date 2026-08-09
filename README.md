@@ -61,7 +61,7 @@ For the actual genotype plot, ask whether expression distributions differ across
 
 ### Generated plot: genotype violin plot
 
-![Gene A expression by genotype](geneA_violin_plot.png)
+![Gene A expression by genotype](outputs/geneA_violin_plot.png)
 
 *Figure 1. Simulated Gene A expression after adjustment for age, sex, batch, and subject-level differences, shown across 0, 1, and 2 copies of the effect allele. The displayed beta is the fitted average change per additional effect-allele copy.*
 
@@ -89,7 +89,7 @@ Because the data are unbalanced, some genotype-by-time combinations are small, e
 
 ### Generated plot: genotype-by-time interaction
 
-![Gene A genotype by infection time interaction](geneA_interaction_plot.png)
+![Gene A genotype by infection time interaction](outputs/geneA_interaction_plot.png)
 
 *Figure 2. Fitted genotype-expression relationships at baseline, 6 hours, and 24 hours after infection. The non-parallel lines illustrate a time-dependent eQTL effect in these simulated data; shaded bands show model-based uncertainty.*
 
