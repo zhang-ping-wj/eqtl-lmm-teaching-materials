@@ -15,7 +15,7 @@ library(rlang)
 library(scales)
 
 # Read data
-df <- read.csv("Downloads/Simulated_test_data_geneA_eQTL.csv")
+df <- read.csv("~/Simulated_test_data_geneA_eQTL.csv")
 
 # Make genotype a factor for the violin plot
 df <- df %>%
