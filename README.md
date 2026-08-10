@@ -39,65 +39,68 @@ The script uses models such as:
 lmer(expression ~ genotype + age + sex + batch + (1 | subject_id), data = df)
 ```
 
-The fixed effects estimate average relationships across the sample. The random intercept `(1 | subject_id)` gives each individual their own baseline level, capturing stable person-to-person differences and the correlation among that person's repeated samples. Without it, standard errors could be too small because repeated observations would be counted as if they were entirely new people.
+The fixed effects estimate average relationships across the sample. The random intercept (1 | subject_id) allows each individual to have their own individual-specific intercept, accounting for correlation among repeated measurements from the same person. Without accounting for within-individual correlation, standard errors and statistical inference may be incorrect because repeated observations are treated as independent.
 
 The random effect is not the genotype effect. Genotype is a predictor whose average effect is estimated directly. The random intercept captures unexplained individual-specific starting levels. A more elaborate analysis could consider a random slope for time, but that is not fitted here.
 
 The script first adjusts expression for age, sex, batch, and the subject random intercept, then defines `corrected_exp` as residual plus the overall mean. This is intended as a teaching simplification; the subsequent interaction model is fitted to this corrected outcome rather than writing all covariates in one formula.
 
-## How to read the volcano plot
 
-Important file-specific caveat: **the supplied R script does not create a conventional volcano plot**. It creates a genotype violin plot with beta and p-value annotation, followed by a genotype-by-time interaction plot. The workshop document mentions a volcano plot for a separate ATAC-seq/ChIP-seq practical, but no volcano-plot data or code is present in this folder.
-
-If a conventional eQTL volcano plot is introduced as an extension:
-
-- The x-axis is usually the estimated genetic effect, such as a regression coefficient or log2 fold change. Right means higher expression with increasing effect-allele dosage; left means lower expression.
-- The y-axis is usually `-log10(p-value)`. Higher points have smaller p-values and stronger statistical evidence against no association.
-- Each point represents one tested variant-gene association.
-
-This dataset has one named outcome, Gene A expression, and one genotype dosage, so it supports a single-association demonstration rather than a full cloud of genome-wide points. Students should separate effect size (how large and in which direction) from statistical evidence (how compatible the data are with zero effect). A point high near x = 0 can be statistically convincing but biologically small; a point far from zero but low can be imprecisely estimated. In a real multi-test eQTL scan, multiple-testing correction would be essential. The supplied script does not perform it.
-
-For the actual genotype plot, ask whether expression distributions differ across dosage groups 0, 1, and 2, and whether the beta and p-value support that pattern. Violin shapes show distributions, jittered points show samples, and the boxplot shows median and spread.
-
-### Generated plot: genotype violin plot
+## Generated plot: genotype violin plot
 
 ![Gene A expression by genotype](outputs/geneA_violin_plot.png)
 
 *Figure 1. Simulated Gene A expression after adjustment for age, sex, batch, and subject-level differences, shown across 0, 1, and 2 copies of the effect allele. The displayed beta is the fitted average change per additional effect-allele copy.*
 
-## How to read the interaction plot
+## Statistical inference and visualisation
 
-The interaction model is:
+For statistical inference, genotype, timepoint, their interaction, covariates, and the subject-level random effect are fitted together in the full mixed model. Covariate-adjusted (`corrected_exp`) expression is used only to provide a clearer visualization of the genotype-expression relationship. The reported genotype and interaction P-values are obtained from the full mixed-effects models rather than from the residualised expression.
+
+For the genotype × time interaction, the full models are:
 
 ```r
-lmer(corrected_exp ~ genotype_effect_allele_dosage * timepoint +
-       (1 | subject_id), data = df)
+# Main-effects model
+fit_main <- lmer(
+  exp ~ genotype_effect_allele_dosage + timepoint +
+    age_years + sex + batch + (1 | subject_id),
+  data = df,
+  REML = FALSE
+)
+
+# Genotype × time interaction model
+fit_int <- lmer(
+  exp ~ genotype_effect_allele_dosage * timepoint +
+    age_years + sex + batch + (1 | subject_id),
+  data = df,
+  REML = FALSE
+)
+
+# Overall genotype × time interaction test
+lrt <- anova(fit_main, fit_int)
+P.int <- lrt$`Pr(>Chisq)`[2]
 ```
 
-The `*` includes genotype, time point, and genotype-by-time point terms. The interaction asks whether the genotype slope is different at different time points.
+The likelihood-ratio test compares the main-effects model with the interaction model. A significant interaction indicates evidence that the genotype effect on expression differs across timepoints.
 
-In the plot, the x-axis is genotype dosage, the y-axis is corrected expression, and each coloured line is a time point. The overall interaction test compares a model with genotype and time point only against one that also allows genotype effects to vary by time.
+## Generated plot: genotype-by-time interaction
 
-- Roughly parallel lines suggest a similar genotype effect over time, even if expression changes with time.
-- Different slopes suggest a time-dependent or context-dependent eQTL.
-- Converging or crossing lines suggest that infection changes the difference between genotype groups, or even their ordering.
-- A vertical shift with parallel lines suggests a time main effect, not necessarily an interaction.
+*Figure 2. Covariate-adjusted Gene A expression across genotype dosage at baseline, 6 hours, and 24 hours after infection. Non-parallel lines suggest that the eQTL effect changes over time; shaded bands show model-based uncertainty. The reported interaction P-value is obtained from the full mixed-effects model fitted to the original expression values.*
 
-Biologically, a time-dependent slope could mean infection changes the regulatory environment around Gene A, for example signalling, chromatin state, transcription-factor activity, or cell composition. The plot alone does not establish mechanism or causality.
+### How to read the interaction plot
 
-Because the data are unbalanced, some genotype-by-time combinations are small, especially genotype 2 and 6 hours. Students should inspect points and uncertainty intervals, not only fitted lines. Time is treated as a factor here, so the model estimates separate categorical differences rather than assuming a straight-line change from 0 to 6 to 24 hours.
+In the plot, the x-axis is genotype dosage, the y-axis is covariate-adjusted expression (`corrected_exp`), and each coloured line represents a timepoint.
 
-### Generated plot: genotype-by-time interaction
+- **Roughly parallel lines** suggest a similar genotype effect across timepoints.
+- **Non-parallel lines** suggest a time-dependent or dynamic eQTL.
+- **Converging or crossing lines** suggest that the magnitude or direction of the genotype effect changes over time.
+- **A vertical shift with parallel lines** suggests a time main effect, but not necessarily a genotype × time interaction.
 
-![Gene A genotype by infection time interaction](outputs/geneA_interaction_plot.png)
-
-*Figure 2. Fitted genotype-expression relationships at baseline, 6 hours, and 24 hours after infection. The non-parallel lines illustrate a time-dependent eQTL effect in these simulated data; shaded bands show model-based uncertainty.*
+Visual patterns alone do not establish an interaction; statistical evidence comes from the genotype × timepoint interaction test in the full mixed-effects model.
 
 ## File-specific assumptions and limitations
 
 - The data are labelled simulated, so biological conclusions are illustrative only.
-- The R script reads from `Downloads/Simulated_test_data_geneA_eQTL.csv`, whereas the supplied CSV is in the teaching folder; the path may need changing.
-- The first output is a violin plot, not a volcano plot. A conventional volcano plot requires results for many tested associations, which are not included.
+- The R script reads from `~/Simulated_test_data_geneA_eQTL.csv`, whereas the supplied CSV is in the teaching folder; the path may need changing.
 - The analysis uses a subject random intercept but no random time slope, explicit residual correlation structure, or multiple-testing correction.
 - Follow-up is incomplete: all 300 individuals have baseline, but not all have both post-infection samples.
 
