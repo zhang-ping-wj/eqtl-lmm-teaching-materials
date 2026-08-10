@@ -106,7 +106,7 @@ The likelihood-ratio test compares the main-effects model with the interaction m
 
 ### Generated plot: genotype-by-time interaction
 
-![Gene A genotype by infection time interaction](outputs/geneA_interaction_plot.png)
+![Gene A genotype by infection time interaction](outputs/geneA_interaction.png)
 
 *Figure 2. Covariate-adjusted Gene A expression across genotype dosage at baseline, 6 hours, and 24 hours after infection. Non-parallel lines suggest that the eQTL effect changes over time; shaded bands show model-based uncertainty. The reported interaction P-value is obtained from the full mixed-effects model fitted to the original expression values.*
 
